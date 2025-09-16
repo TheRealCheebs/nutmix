@@ -143,11 +143,19 @@ func main() {
 
 	admin.AdminRoutes(ctx, r, mint)
 
-	PORT := fmt.Sprintf(":%v", 8081)
+	// TODO: make port configurable
+	PORT := os.Getenv("MINT_PORT")
+	if PORT == "" {
+		PORT = ":8081"
+	} else {
+		PORT = ":" + PORT
+	}
 
-	slog.Info("Nutmix started on port", slog.Int("port", 8081))
+	slog.Info("Nutmix started on port", slog.String("port", PORT))
 
-	r.Run(PORT)
+	if err := r.Run(PORT); err != nil {
+		slog.Error("Gin server exited", slog.Any("error", err))
+	}
 }
 
 const MemorySigner = "memory"

@@ -171,11 +171,12 @@ tasks:
     # Use 'task docker-db-down' to stop it separately.
 
   gen-test-keys:
-    desc: Generate test keys for MINT_PRIVATE_KEY and ADMIN_NOSTR_NPUB
+    desc: Generate test keys for MINT_PRIVATE_KEY
     cmds:
-      - |
-        echo "MINT_PRIVATE_KEY=$(openssl rand -hex 32)"
-        echo "ADMIN_NOSTR_NPUB=$(openssl rand -hex 32)"
+      - echo "MINT_PRIVATE_KEY=$(openssl rand -hex 32)"
+      - echo "use the npub generated below for ADMIN_NOSTR_NPUB"
+      - go run ./cmd/gen_nostr_key
+    silent: true
 
   test:
     desc: Run tests
