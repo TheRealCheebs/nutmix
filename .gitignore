@@ -1,15 +1,34 @@
+# Environment and secrets
 .env
+
+# Error logs
 build-errors.log
+
+# Mint runtime and temp files
 mint/tmp/
 mint/main
+
+# Local environment and temp directories
 env/
 tmp/
-*_templ.go
-*_templ.txt
-*_gen.go
-*.pb.go
 
+# Generated files
+*_templ.go   # templ generated Go files (all subdirs)
+*_templ.txt  # templ generated text files (all subdirs)
+*_gen.go     # other generated Go files (all subdirs)
+*.pb.go      # protobuf generated Go files (all subdirs)
+internal/**/*.pb.go
+internal/**/*_templ.go
+internal/**/*_templ.txt
+internal/**/*_gen.go
+
+# TLS certificates and keys
 tls/
 
+# Keycloak data
 keycloak/keycloak_export
 keycloak/postgres_data
+
+# go-task and build artifacts
+.task
+build

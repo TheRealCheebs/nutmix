@@ -145,7 +145,7 @@ func main() {
 
 	PORT := fmt.Sprintf(":%v", 8081)
 
-	slog.Info("Nutmix started in port", slog.Int("port", 8081))
+	slog.Info("Nutmix started on port", slog.Int("port", 8081))
 
 	r.Run(PORT)
 }

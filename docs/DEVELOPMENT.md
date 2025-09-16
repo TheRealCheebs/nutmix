@@ -1,0 +1,248 @@
+# Development Guide
+
+This guide will help you set up the nutmix project for local development using our Taskfile automation.
+
+## Prerequisites
+
+- [Go](https://golang.org/doc/install) (version 1.23 or later)
+- [Docker](https://docs.docker.com/get-docker/)
+- [Task](https://taskfile.dev/installation/) - Install with:
+  ```bash
+  # macOS
+  brew install task
+
+  # Linux (deb/rpm)
+  curl -sL https://taskfile.dev/install.sh | sh
+
+  # Windows (with Scoop)
+  scoop install task
+  ```
+
+## Initial Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/lescuer96/nutmix.git
+   cd nutmix
+   ```
+
+2. **Set up environment variables**
+   Create a `.env` file in the project root:
+   ```bash
+   cp .env.example .env
+   ```
+   You will minimally need to update the following:
+   ```bash
+   # Application secrets (generate these with `task gen-test-keys`)
+   MINT_PRIVATE_KEY=your_generated_key
+   ADMIN_NOSTR_NPUB=your_generated_npub
+
+   # Database configuration
+   POSTGRES_PASSWORD="" # Database password (use a strong password)
+   ```
+
+3. **Install dependencies** (one-time setup)
+   ```bash
+   task deps
+   ```
+   This command will:
+   - Install required Go tools (protobuf generators, goose, templ)
+   - Install protobuf-compiler if needed
+   - Download Go module dependencies
+
+## Development Workflow
+
+### Starting the Development Environment
+
+The recommended development setup runs the database in Docker and the application locally:
+
+```bash
+# Start the database and run the application locally
+task dev
+```
+
+This command will:
+
+1. Install all required dependencies (Go tools, protobuf-compiler) on first run
+1. Start the PostgreSQL database using Docker Compose
+1. Generate protobuf code if needed
+1. Generate Go code from templ files if needed
+1. Build and run the nutmix application locally
+
+**Note**: The first time you run task dev, it may take a bit longer as it installs required dependencies. Subsequent runs will be much faster.
+
+
+When you're done, stop the database with:
+```bash
+task docker-db-down
+```
+
+### Alternative Workflows
+
+#### Manual Dependency Installation
+If you want to install dependencies separately:
+```bash
+# Install all dependencies
+task deps
+```
+
+#### Running Just the Database
+```bash
+# Start only the database
+task docker-db
+
+# Stop the database
+task docker-db-down
+```
+
+#### Building and Running the Application Locally
+```bash
+# Build the application (generates code if needed)
+task build
+
+# Run the application locally
+task run
+```
+
+#### Running Tests
+```bash
+# Run all tests
+task test
+
+# Run linter
+task lint
+```
+
+### Generating Test Keys
+
+If you need new test keys for MINT_PRIVATE_KEY and ADMIN_NOSTR_NPUB:
+
+```bash
+task gen-test-keys
+```
+
+Copy the output to your `.env` file.
+
+### Generating Code
+#### Protobuf Code Generation
+The protobuf code is automatically generated when needed (before building). If you want to regenerate it manually:
+```bash
+task gen-proto
+```
+
+This will regenerate the Go code from `internal/gen/signer.proto`.
+
+#### Templ Code Generation
+The Go code from templ files is automatically generated when needed. If you want to regenerate it manually:
+``` bash
+task gen-templ
+```
+This will regenerate the Go code from the templ files in `internal/routes/admin/templates/`.
+
+
+### Working with Docker
+
+#### Permission Handling
+When running the mint service with Docker Compose, the container is configured to run as your local user (using UID and GID) to avoid permission issues with mounted config directories (e.g., ~/.config/nutmix).
+
+The Docker Compose tasks automatically set these environment variables, but if you run Docker Compose manually, you should export your user and group IDs first:
+```bash
+export UID=$(id -u)
+export GID=$(id -g)
+```
+
+#### Building and Running in Docker
+```bash
+# Build Docker image
+task docker-build
+
+# Run application in Docker
+task docker-run
+```
+
+#### Full Stack with Docker Compose
+```bash
+# Start all services (traefik, postgres, app)
+task docker-up
+
+# Stop all services
+task docker-down
+```
+#### Docker Compose Permissions Note
+
+When running the mint service with Docker Compose, the container is configured to run
+as your local user (using UID and GID) to avoid permission
+issues with mounted config directories (e.g., ~/.config/nutmix).
+Before running Docker Compose, export your user and group IDs:
+
+   export UID=$(id -u)
+   export GID=$(id -g)
+
+This ensures files created by the container are owned by your user, preventing permission errors when switching between Docker and local development. If you previously ran the container as root, you may need to fix ownership with:
+
+   sudo chown -R $(whoami):$(whoami) ~/.config/nutmix
+
+
+## Troubleshooting
+
+### Dependencies Missing
+If you encounter errors about missing tools or protobuf:
+```bash
+task deps
+```
+
+### Port Already in Use
+If you get port conflicts (especially port 8080 or 5432):
+- Check what's using the port: `lsof -i :8080` or `lsof -i :5432`
+- Either stop the conflicting service or change the port in your `.env` file
+
+### Database Connection Issues
+If the application can't connect to the database:
+1. Ensure the database is running: `task docker-db`
+2. Verify your `.env` file has the correct database settings
+3. Check Docker is running: `docker ps`
+
+### Protobuf Generation Issues
+If you encounter errors with protobuf code:
+```bash
+task gen-proto
+```
+
+### Templ Generation Issues
+If you encounter errors with templ code:
+```bash
+task gen-templ
+```
+
+## Available Tasks
+
+For a complete list of available tasks:
+```bash
+task help
+```
+
+Common tasks include:
+- `task build` - Build the application
+- `task run` - Build and run the application locally
+- `task dev` - Start database and run application locally
+- `task test` - Run tests
+- `task lint` - Run linter
+- `task gen-proto` - Generate protobuf code
+- `task gen-templ` - Generate Go code from templ files
+- `task gen-test-keys` - Generate test keys
+- `task docker-build` - Build Docker image
+- `task docker-run` - Run application in Docker
+- `task docker-up` - Start all services with docker-compose
+- `task docker-down` - Stop all services
+- `task docker-db` - Start only the database service
+- `task docker-db-down` - Stop the database service
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting: `task test` and `task lint`
+5. Submit a pull request
+
+For any questions about the development setup, please open an issue.

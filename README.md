@@ -8,61 +8,69 @@ _This project is in active development; it has not gone through optimization and
 
 # Nutmix
 
-Cashu protocol mint focused on ease of use and feature completeness.
+Nutmix is an alternative Cashu mint written in Go, designed for ease of use, feature completeness, and minimal complexity.
 
 Please test in Mutinynet at: *https://mutinynet.nutmix.cash*
 
-This is an alternative Cashu mint written in go. It's specifically just a mint with the objective to minimize the code
-and complexity.  
 ## Objective
-The mint includes it's proper dashboard to manage administration and logs. 
+
+Nutmix provides a built-in dashboard for administration and log management, making it easy to operate and monitor the mint.
+
+---
 
 ### Run the Mint
 
-This project is thought to be able to be ran on a docker container or locally.
+You can run this project locally or in a Docker container.
 
-Here is what you need to know to change to run nutmix in docker:
-*Most of the setup process will happen inside the Admin dashboard.* 
+Most of the setup process is handled in the **Admin Dashboard**, but you’ll need to configure a few things first.
+Start by creating an `.env` file (use the provided `env.example` as a reference).
 
-You'll need  the correct variables in an `.env` file first. Use the env.example file as reference.
+#### Required Environment Variables
 
-- You need to make sure to use a strong `POSTGRES_PASSWORD` and make user the username and password are the same in the
-`DATABASE_URL`
+1. **Database**
+   - Set a strong `POSTGRES_PASSWORD`.
+   - Ensure the username and password match the values in your `DATABASE_URL`.
 
-- Add private key using the `MINT_PRIVATE_KEY` enviroment variable or pick connect to a remote signer. 
+2. **Private Key**
+   - Add a private key via the `MINT_PRIVATE_KEY` environment variable, **or** configure a connection to a remote signer.
 
-- To login into the admin dashboard and change the rest of settings add your npub to `ADMIN_NOSTR_NPUB` enviroment variable. 
+3. **Admin Access**
+   - Add your npub to the `ADMIN_NOSTR_NPUB` environment variable so you can log in to the Admin Dashboard and finish setup.
 
-The mint will stop and Print out what you are missing if you don't have this 4 Items setup.
+---
 
+⚠️ The mint will stop and print out errors if these items are not configured properly.
 
-### Running docker 
-In case you want to run the docker compose file using traefik and you also need to fill variables below `HOSTING` for your domains.
-If you have this correctly setup it should be as easy as running a simple docker command on linux:
+---
 
-```bash 
-docker compose up -d 
+### Running with Docker
+
+To run the included Docker Compose setup (using Traefik), you’ll need to set the variables under **HOSTING** in your `.env` file for your domains.
+
+Once configured, starting Nutmix is as simple as running:
+
+```bash
+docker compose up -d
 ```
 
 ## Setting up a remote signer.
 
-Right now there are two remote signer implementations. 
+Nutmix supports connecting to a remote signer. Currently, there are two implementations:
 
 - [Nutvault](https://github.com/lescuer97/nutvault)
 - [cdk-signatory](https://github.com/cashubtc/cdk/tree/main/crates/cdk-signatory)
 
-There is a new enviroment variable called `SIGNER_TYPE`. If you want to use the remote signer you need to set the
-options `abstract_socket` or `network`. This will then will look for the signer to connect.  If you pick network you
-will also need to set the `NETWORK_SIGNER_ADDRESS` env variable.
+To use a remote signer:
 
-### Setup mTLS for signer
-The mint communicates with the remote signer using mTLS.
-You will need to set environment variables for signaling the routes for mTLS.
+1. Set the `SIGNER_TYPE` environment variable to either `abstract_socket` or `network`.
+   - If you choose `network`, you’ll also need to set `NETWORK_SIGNER_ADDRESS`.
+
+2. Configure mTLS so the mint can securely communicate with the signer. Add the following environment variables with the correct file paths:
 
 ```bash
-SIGNER_CLIENT_TLS_KEY=<route to file>
-SIGNER_CLIENT_TLS_CERT=<route to file>
-SIGNER_CA_CERT=<route to file>
+SIGNER_CLIENT_TLS_KEY=<path-to-key>
+SIGNER_CLIENT_TLS_CERT=<path-to-cert>
+SIGNER_CA_CERT=<path-to-ca-cert>
 ```
 
 ## Video Walkthrough
@@ -106,29 +114,52 @@ Non official NUT:
 
 ## Development
 
-If you want to develop for the project I personally run a hybrid setup. I run the mint locally and the db on docker. 
+For detailed development setup instructions, see [Development.md](docs/DEVELOPMENT.md)
 
-I have a special development docker compose called: `docker-compose-dev.yml`. This is for simpler development without having traefik in the middle.
+### Quick Start
 
-1. run the database in docker. Please check you have the necessary info in the `.env` file. 
 
-``` docker compose -f docker-compose-dev.yml up db ```
+Choose the setup that best fits your needs:
 
-2. Run the mint locally. 
+#### Option 1: Full Docker Compose (Complete Stack)
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/nutmix.git
+cd nutmix
 
-``` # build the project go run cmd/nutmix/*.go ```
-
-#### Generate remote-signer proto code
-
+# Start all services (traefik, postgres, app)
+task docker-up
 ```
-protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative --experimental_allow_proto3_optional internal/gen/signer.proto
+This option runs the entire stack in Docker containers, including:
+  - Traefik (reverse proxy)
+  - PostgreSQL database
+  - Nutmix application
+
+#### Option 2: Development Setup (Database in Docker, App Locally)
+```bash
+# Clone the repository
+git clone https://github.com/lescuer97/nutmix.git
+cd nutmix
+
+# Install dependencies and start the development environment
+task dev
 ```
-### Support 
 
-Pull requests and suggestions are always welcomed. The more people have eyes on this the better.
+This option is recommended for active development:
+  - PostgreSQL runs in Docker
+  - Application runs locally on your machine
+  - Automatically installs dependencies on first run
+  - Enables faster development iterations
 
-If you can donate monetarily it would be greatly appreciated. The funds would go to the development of the mint and
-servers for testing.
+### Keycloak Notice
+
+Keycloak-related configuration and environment variables are present in some files, but Keycloak is not currently used or integrated in this project.
+
+## Support
+
+Pull requests, issues, and suggestions are always welcome — the more eyes on the project, the better.
+
+If you’d like to support development financially, donations are greatly appreciated. Contributions help fund ongoing development of the mint and testing servers.
 
 
 *on-chain silent payments*
@@ -153,5 +184,3 @@ bc1qp7lswgftpgrkt00vszrm63dmkq3nuxjv60czk6
 ```
 84yCRZY6BXebs8xWE6Yzj6S6cE17uLhkTSynneVPmejjWAcgBtnV7UEUiZqJNLE4pXaPmXNkJuhcAYbpu49zAdVsEZqqxac
 ```
-
-

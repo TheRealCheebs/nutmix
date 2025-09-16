@@ -1,15 +1,19 @@
-Mint payment request quote
+# API Example Calls
 
+This document provides example API requests for manual testing and development.
+
+## Mint Payment Request Quote
+```sh
 curl --request POST --url http://localhost:8080/v1/mint/quote/bolt11 \
      --header 'Content-Type: application/json' \
      --data '{
         "amount" : 10,
         "unit": "sats"
     }'
+```
 
-
-request mint tokens
-
+## Request Mint Tokens
+```sh
 curl --request POST --url http://localhost:8080/v1/mint/bolt11 \
     -H "Content-Type: application/json" -d \
     '{
@@ -27,8 +31,10 @@ curl --request POST --url http://localhost:8080/v1/mint/bolt11 \
         }
       ]
     }'
+```
 
-request unauthorized swap
+## Request Unauthorized Swap
+```sh
 curl --request POST --url http://localhost:8080/v1/swap --header 'Content-Type: application/json' -d \
                 '{
                 "inputs": 
@@ -39,36 +45,6 @@ curl --request POST --url http://localhost:8080/v1/swap --header 'Content-Type: 
                       "secret": "407915bc212be61a77e3e6d2aeb4c727980bda51cd06a6afc29e2861768a7837",
                       "C": "02bc9097997d81afb2cc7346b5e4345a9346bd2a506eb7958598a72f0cf85163ea"
                     }
-                  ],
-                "outputs":
-                  [
-                    {
-                      "amount": 2, 
-                      "id": "009a1f293253e41e",
-                      "B_": "02634a2c2b34bec9e8a4aba4361f6bf202d7fa2365379b0840afe249a7a9d71239"
-                    }
-                  ],
-            }'
-
-curl --request POST --url http://localhost:8080/v1/swap \
-    -H "Content-Type: application/json" -d \
-    '{
-  "inputs": 
-    [
-      {
-        "amount": 2,
-        "id": "009a1f293253e41e",
-        "secret": "407915bc212be61a77e3e6d2aeb4c727980bda51cd06a6afc29e2861768a7837",
-        "C": "02bc9097997d81afb2cc7346b5e4345a9346bd2a506eb7958598a72f0cf85163ea"
-      }
-    ],
-  "outputs":
-    [
-      {
-        "amount": 2, 
-        "id": "009a1f293253e41e",
-        "B_": "02634a2c2b34bec9e8a4aba4361f6bf202d7fa2365379b0840afe249a7a9d71239"
-      }
-    ],
-}'
-
+                  ]
+                }'
+```
