@@ -1,22 +1,24 @@
 # Development Guide
 
-This guide will help you set up the nutmix project for local development using our Taskfile automation.
+This guide will help you set up the nutmix project for local development using our justfile automation.
 
 ## Prerequisites
 
 - [Go](https://golang.org/doc/install) (version 1.23 or later)
 - [Docker](https://docs.docker.com/get-docker/)
-- [Task](https://taskfile.dev/installation/) - Install with:
+- [Just](https://github.com/casey/just?tab=readme-ov-file#installation) - Install with:
   ```bash
   # macOS
-  brew install task
+  brew install just
 
-  # Linux (deb/rpm)
-  curl -sL https://taskfile.dev/install.sh | sh
-
-  # Windows (with Scoop)
-  scoop install task
+  # Linux
+  apt install just
+  or
+  pacman -S just
   ```
+
+**Note:** This project is not currently supported on Windows due to a syslog dependency. Development is recommended on Linux or macOS.
+There also exist dlopen symbol conflicts when building on darwin/amd64.
 
 ## Initial Setup
 
@@ -33,7 +35,7 @@ This guide will help you set up the nutmix project for local development using o
    ```
    You will minimally need to update the following:
    ```bash
-   # Application secrets (generate these with `task gen-test-keys`)
+   # Application secrets (generate these with `just gen-test-keys`)
    MINT_PRIVATE_KEY=your_generated_key
    ADMIN_NOSTR_NPUB=npub_from_browser_extension
 
@@ -43,7 +45,7 @@ This guide will help you set up the nutmix project for local development using o
 
 3. **Install dependencies** (one-time setup)
    ```bash
-   task deps
+   just deps
    ```
    This command will:
    - Install required Go tools (protobuf generators, goose, templ)
@@ -77,23 +79,19 @@ The recommended development setup runs the database in Docker and the applicatio
 
 ```bash
 # Start the database and run the application locally
-task dev
+just dev
 ```
 
 This command will:
 
-1. Install all required dependencies (Go tools, protobuf-compiler) on first run
 1. Start the PostgreSQL database using Docker Compose
 1. Generate protobuf code if needed
 1. Generate Go code from templ files if needed
 1. Build and run the nutmix application locally
 
-**Note**: The first time you run task dev, it may take a bit longer as it installs required dependencies. Subsequent runs will be much faster.
-
-
 When you're done, stop the database with:
 ```bash
-task docker-db-down
+just docker-db-down
 ```
 
 ### Alternative Workflows
@@ -102,34 +100,34 @@ task docker-db-down
 If you want to install dependencies separately:
 ```bash
 # Install all dependencies
-task deps
+just deps
 ```
 
 #### Running Just the Database
 ```bash
 # Start only the database
-task docker-db
+just docker-db
 
 # Stop the database
-task docker-db-down
+just docker-db-down
 ```
 
 #### Building and Running the Application Locally
 ```bash
 # Build the application (generates code if needed)
-task build
+just build
 
 # Run the application locally
-task run
+just run
 ```
 
 #### Running Tests
 ```bash
 # Run all tests
-task test
+just test
 
 # Run linter
-task lint
+just lint
 ```
 
 ### Generating Test Keys
@@ -137,7 +135,7 @@ task lint
 If you need new test keys for MINT_PRIVATE_KEY and ADMIN_NOSTR_NPUB:
 
 ```bash
-task gen-test-keys
+just gen-test-keys
 ```
 
 Copy the output to your `.env` file.
@@ -146,7 +144,7 @@ Copy the output to your `.env` file.
 #### Protobuf Code Generation
 The protobuf code is automatically generated when needed (before building). If you want to regenerate it manually:
 ```bash
-task gen-proto
+just gen-proto
 ```
 
 This will regenerate the Go code from `internal/gen/signer.proto`.
@@ -154,7 +152,7 @@ This will regenerate the Go code from `internal/gen/signer.proto`.
 #### Templ Code Generation
 The Go code from templ files is automatically generated when needed. If you want to regenerate it manually:
 ``` bash
-task gen-templ
+just gen-templ
 ```
 This will regenerate the Go code from the templ files in `internal/routes/admin/templates/`.
 
@@ -164,7 +162,7 @@ This will regenerate the Go code from the templ files in `internal/routes/admin/
 #### Permission Handling
 When running the mint service with Docker Compose, the container is configured to run as your local user (using UID and GID) to avoid permission issues with mounted config directories (e.g., ~/.config/nutmix).
 
-The Docker Compose tasks automatically set these environment variables, but if you run Docker Compose manually, you should export your user and group IDs first:
+The Docker Compose recipes automatically set these environment variables, but if you run Docker Compose manually, you should export your user and group IDs first:
 ```bash
 export UID=$(id -u)
 export GID=$(id -g)
@@ -173,19 +171,19 @@ export GID=$(id -g)
 #### Building and Running in Docker
 ```bash
 # Build Docker image
-task docker-build
+just docker-build
 
 # Run application in Docker
-task docker-run
+just docker-run
 ```
 
 #### Full Stack with Docker Compose
 ```bash
 # Start all services (traefik, postgres, app)
-task docker-up
+just docker-up
 
 # Stop all services
-task docker-down
+just docker-down
 ```
 #### Docker Compose Permissions Note
 
@@ -207,7 +205,7 @@ This ensures files created by the container are owned by your user, preventing p
 ### Dependencies Missing
 If you encounter errors about missing tools or protobuf:
 ```bash
-task deps
+just deps
 ```
 
 ### Port Already in Use
@@ -217,51 +215,72 @@ If you get port conflicts (especially port 8080 or 5432):
 
 ### Database Connection Issues
 If the application can't connect to the database:
-1. Ensure the database is running: `task docker-db`
+1. Ensure the database is running: `just docker-db`
 2. Verify your `.env` file has the correct database settings
 3. Check Docker is running: `docker ps`
 
 ### Protobuf Generation Issues
 If you encounter errors with protobuf code:
 ```bash
-task gen-proto
+just gen-proto
 ```
 
 ### Templ Generation Issues
 If you encounter errors with templ code:
 ```bash
-task gen-templ
+just gen-templ
 ```
 
-## Available Tasks
+## Available Recipes
 
-For a complete list of available tasks:
+For a complete list of available recipes:
 ```bash
-task help
+just help
 ```
 
-Common tasks include:
-- `task build` - Build the application
-- `task run` - Build and run the application locally
-- `task dev` - Start database and run application locally
-- `task test` - Run tests
-- `task lint` - Run linter
-- `task gen-proto` - Generate protobuf code
-- `task gen-templ` - Generate Go code from templ files
-- `task gen-test-keys` - Generate test keys
-- `task docker-build` - Build Docker image
-- `task docker-run` - Run application in Docker
-- `task docker-up` - Start all services with docker-compose
-- `task docker-down` - Stop all services
-- `task docker-db` - Start only the database service
-- `task docker-db-down` - Stop the database service
+Available recipe:
+End User:
+  run              - Build and run the application locally
+  docker-run       - Run application in Docker
+  docker-up        - Start all services with docker-compose
+  docker-down      - Stop all services
+
+Developer Focused:
+  deps             - Install required dependencies
+  gen-proto        - Generate protobuf code
+  gen-templ        - Generate go code from templ files
+  gen-test-keys    - Generate test keys for MINT_PRIVATE_KEY
+  dev              - Start database and run application locally
+  test             - Run tests
+  lint             - Run linter
+  clean-all        - Clean build artifacts and cache
+  docker-db        - Start only the database service
+  docker-db-down   - Stop the database service
+  docker-clean     - Clean up Docker resources
+
+Build and Release:
+  build            - Build the application
+  build-platform <platform>  - Build the application for a specified platform, linux/amd64 linux/arm64 and darwin/arm64
+  clean            - Clean build artifacts
+  release          - Builds all artifacts for release
+  docker-build     - Build Docker image with version tags
+  docker-push      - Push Docker images to registry
+
+Versioning:
+  version          - Show current version
+  version-bump     - Bump version (patch by default)
+  version-set      - Set specific version (e.g., just version-set 1.2.3)
+  version-major    - Bump major version
+  version-minor    - Bump minor version
+  version-patch    - Bump patch version
+
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests and linting: `task test` and `task lint`
+4. Run tests and linting: `just test` and `just lint`
 5. Submit a pull request
 
 For any questions about the development setup, please open an issue.

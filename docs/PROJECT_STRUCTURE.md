@@ -6,7 +6,7 @@
 - `api/` — API-related code
 - `test/` — Test utilities and setups
 - `Dockerfile`, `docker-compose.yml`, `docker-compose-dev.yml` — Containerization files
-- `Taskfile.yml` — Project automation and build tasks (replaces Makefile)
+- `justfile` — Project automation and build recipes
 - `.env`, `env.example` — Environment configuration
 - `.gitignore` — Ignore rules for secrets, generated files, and build artifacts
 - `.github/workflows/` — CI/CD workflows

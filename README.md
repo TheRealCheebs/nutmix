@@ -128,7 +128,7 @@ git clone https://github.com/yourusername/nutmix.git
 cd nutmix
 
 # Start all services (traefik, postgres, app)
-task docker-up
+just docker-up
 ```
 This option runs the entire stack in Docker containers, including:
   - Traefik (reverse proxy)
@@ -142,7 +142,8 @@ git clone https://github.com/lescuer97/nutmix.git
 cd nutmix
 
 # Install dependencies and start the development environment
-task dev
+just deps
+just dev
 ```
 
 This option is recommended for active development:
